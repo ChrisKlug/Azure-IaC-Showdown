@@ -1,0 +1,4 @@
+encryptionsalt: v1:Ps2/i8paRog=:v1:zxN5b8EaasD0SCXy:pcSYWpfSwoxj6fB8s2vsQw7Gftk0zQ==
+config:
+  azure-native:location: NorthEurope
+  iac-pulumi:projectName: iac-pulumi
