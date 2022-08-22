@@ -1,0 +1,452 @@
+{
+	// Place your Code workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+	"Bicep Add App Service": {
+		"scope": "bicep",
+		"prefix": "bicep-01",
+		"body": [
+			"var webAppName = '\\${projectName}-web-\\${suffix}'",
+			"resource appService 'Microsoft.Web/sites@2022-03-01' = {",
+			"  name: webAppName",
+			"  location: location",
+			"  properties: {",
+			"    serverFarmId: appServicePlan.id",
+			"    httpsOnly: true",
+			"    siteConfig: {",
+			"      minTlsVersion: '1.2'",
+			"    }",
+			"  }",
+			"}"
+		],
+		"description": "App Service"
+	},
+	"Bicep Add Application Insights Resource": {
+		"scope": "bicep",
+		"prefix": "bicep-02",
+		"body": [
+			"$0",
+			"",
+			"var appInsightsName = '\\${projectName}-ai-\\${suffix}'",
+			"resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {",
+			"  name: appInsightsName",
+			"  location: location",
+			"  kind: 'web'",
+			"  properties: {",
+			"    Application_Type: 'web'",
+			"    WorkspaceResourceId: '???'",
+			"  }",
+			"}"
+		],
+		"description": "Add Application Insights Resource"
+	},
+	"Bicep Add Log Analytics Workspace Resource": {
+		"scope": "bicep",
+		"prefix": "bicep-03",
+		"body": [
+			"var workspaceName = '\\${projectName}-ws-\\${suffix}'",
+			"resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {",
+			"  name: workspaceName",
+			"  location: location",
+			"  properties: {",
+			"    sku: {",
+			"      name: 'PerGB2018'",
+			"    }",
+			"  }",
+			"}"
+		],
+		"description": "Add Log Analytics Workspace Resource"
+	},
+	"Bicep Add App Settings": {
+		"scope": "bicep",
+		"prefix": "bicep-04",
+		"body": [
+			"appSettings: [",
+			"  { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: applicationInsights.properties.InstrumentationKey }",
+			"]"
+		],
+		"description": "Add App Settings"
+	},
+	"Bicep Add Storage Account Resource": {
+		"scope": "bicep",
+		"prefix": "bicep-05",
+		"body": [
+			"var storageAccountName = toLower('\\${replace(projectName, '-', '')}\\${suffix}')",
+			"resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {",
+			"  name: storageAccountName",
+			"  location: location",
+			"  sku: {",
+			"    name: 'Standard_LRS'",
+			"  }",
+			"  kind: 'StorageV2'",
+			" }",
+		],
+		"description": "Add Storage Account Resource"
+	},
+	"Bicep Add ConnectionStrings": {
+		"scope": "bicep",
+		"prefix": "bicep-06",
+		"body": [
+			"connectionStrings: [",
+			"  {",
+			"    type: 'Custom'",
+			"    name: 'Storage'",
+			"    connectionString: 'DefaultEndpointsProtocol=https;AccountName=\\${storageAccount.name};EndpointSuffix=\\${environment().suffixes.storage};AccountKey=\\${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'",
+			"  }",
+			"]"
+		],
+		"description": "Add ConnectionStrings"
+	},
+	"Bicep Add Output": {
+		"scope": "bicep",
+		"prefix": "bicep-07",
+		"body": [
+			"output websiteUrl string = 'https://\\${appService.properties.defaultHostName}/'"
+		],
+		"description": "Add Output"
+	},
+	"TF Add Provider Config": {
+		"scope": "terraform",
+		"prefix": "tf-01",
+		"body": [
+			"terraform {",
+			"  required_providers {",
+			"    azurerm = {",
+			"      source  = \"hashicorp/azurerm\"",
+			"      version = \"=3.0.0\"",
+			"    }",
+			"  }",
+			"}",
+			"",
+			"provider \"azurerm\" {",
+			"  features {}",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "Add Provider Config"
+	},
+	"TF Add Variables": {
+		"scope": "terraform",
+		"prefix": "tf-02",
+		"body": [
+			"variable \"projectName\" {",
+			"  type = string",
+			"}",
+			"",
+			"variable \"location\" {",
+			"  type    = string",
+			"  default = \"NorthEurope\"",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "Add Variables"
+	},
+	"TF Add Suffix": {
+		"scope": "terraform",
+		"prefix": "tf-03",
+		"body": [
+			"resource \"random_string\" \"suffix\" {",
+			"  length = 5",
+			"  special = false",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "Add Suffix"
+	},
+	"TF Add Locals": {
+		"scope": "terraform",
+		"prefix": "tf-04",
+		"body": [
+			"locals {",
+			"  workspaceName      = \"\\${var.projectName}-ws-\\${random_string.suffix.result}\"",
+			"  appInsightsName    = \"\\${var.projectName}-ai-\\${random_string.suffix.result}\"",
+			"  storageAccountName = lower(replace(\"\\${var.projectName}\\${random_string.suffix.result}\", \"-\", \"\"))",
+			"  appSvcPlanName     = \"\\${var.projectName}-svc-plan-\\${random_string.suffix.result}\"",
+			"  webAppName         = \"\\${var.projectName}-web-\\${random_string.suffix.result}\"",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "Add Locals"
+	},
+	"TF Add Log Analytics Workspace": {
+		"scope": "terraform",
+		"prefix": "tf-05",
+		"body": [
+			"resource \"azurerm_log_analytics_workspace\" \"laws\" {",
+			"  name                = local.workspaceName",
+			"  location            = var.location",
+			"  resource_group_name = azurerm_resource_group.rg.name",
+			"  sku                 = \"PerGB2018\"",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "Add Log Analytics Workspace"
+	},
+	"TF Add Application Insights": {
+		"scope": "terraform",
+		"prefix": "tf-06",
+		"body": [
+			"resource \"azurerm_application_insights\" \"appInsights\" {",
+			"  name                = local.appInsightsName",
+			"  location            = azurerm_resource_group.rg.location",
+			"  resource_group_name = azurerm_resource_group.rg.name",
+			"  application_type    = \"web\"",
+			"  workspace_id        = azurerm_log_analytics_workspace.laws.id",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "Add Application Insights"
+	},
+	"TF Add Storage Account": {
+		"scope": "terraform",
+		"prefix": "tf-07",
+		"body": [
+			"resource \"azurerm_storage_account\" \"storageAccount\" {",
+			"  name                     = local.storageAccountName",
+			"  location                 = azurerm_resource_group.rg.location",
+			"  resource_group_name      = azurerm_resource_group.rg.name",
+			"  account_tier             = \"Standard\"",
+			"  account_replication_type = \"LRS\"",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "Add Storage Account"
+	},
+	"TF Add App Service Plan": {
+		"scope": "terraform",
+		"prefix": "tf-08",
+		"body": [
+			"resource \"azurerm_service_plan\" \"appSvcPlan\" {",
+			"  name                = local.appSvcPlanName",
+			"  location            = azurerm_resource_group.rg.location",
+			"  resource_group_name = azurerm_resource_group.rg.name",
+			"  os_type             = \"Linux\"",
+			"  sku_name            = \"B1\"",
+			"  worker_count        = 1",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "App Service Plan"
+	},
+	"TF Add App Service": {
+		"scope": "terraform",
+		"prefix": "tf-09",
+		"body": [
+			"resource \"azurerm_linux_web_app\" \"webApp\" {",
+			"  name                = local.webAppName",
+			"  location            = azurerm_resource_group.rg.location",
+			"  resource_group_name = azurerm_resource_group.rg.name",
+			"  service_plan_id     = azurerm_service_plan.appSvcPlan.id",
+			"  https_only          = true",
+			"  site_config {",
+			"    minimum_tls_version = \"1.2\"",
+			"  }",
+			"  app_settings = {",
+			"    \"APPINSIGHTS_INSTRUMENTATIONKEY\" = azurerm_application_insights.appInsights.instrumentation_key",
+			"  }",
+			"  connection_string {",
+			"    type  = \"Custom\"",
+			"    name  = \"Storage\"",
+			"    value = azurerm_storage_account.storageAccount.primary_blob_connection_string",
+			"  }",
+			"}",
+			"",
+			"$0"
+		],
+		"description": "App Service"
+	},
+	"TF Add Output": {
+		"scope": "terraform",
+		"prefix": "tf-10",
+		"body": [
+			"output \"website_url\" {",
+			"  value = \"https://\\${azurerm_linux_web_app.webApp.default_hostname}/\"",
+			"}",
+		],
+		"description": "App Output"
+	},
+	"Pulumi Get Config": {
+		"scope": "csharp",
+		"prefix": "pulumi-01",
+		"body": [
+			"var config = new Pulumi.Config();",
+			"var projectName = config.Require(\"projectName\");",
+			"",
+			"$0"
+		],
+		"description": "Get Config"
+	},
+	"Pulumi Name Variables": {
+		"scope": "csharp",
+		"prefix": "pulumi-02",
+		"body": [
+			"var workspaceName = $\"{projectName\\}-ws\";",
+			"var appInsightsName = $\"{projectName}-ai\";",
+			"var storageAccountName = $\"{projectName.Replace(\"-\",\"\").ToLower()}\";",
+			"var appSvcPlanName = $\"{projectName}-sv-plan\";",
+			"var webAppName = $\"{projectName}-web\";",
+			"",
+			"$0"
+		],
+		"description": "Name Variables"
+	},
+	"Pulumi Add Log Analytics Workspace": {
+		"scope": "csharp",
+		"prefix": "pulumi-03",
+		"body": [
+			"var laws = new Pulumi.AzureNative.OperationalInsights.Workspace(workspaceName, new Pulumi.AzureNative.OperationalInsights.WorkspaceArgs{",
+			"  ResourceGroupName = rg.Name,",
+			"  Sku = new Pulumi.AzureNative.OperationalInsights.Inputs.WorkspaceSkuArgs {",
+			"    Name = \"PerGB2018\"",
+			"  }",
+			"}, new CustomResourceOptions { Parent = rg });",
+			"",
+			"$0"
+		],
+		"description": "Add Log Analytics Workspace"
+	},
+	"Pulumi Add Application Insights": {
+		"scope": "csharp",
+		"prefix": "pulumi-04",
+		"body": [
+			"var ai = new Pulumi.AzureNative.Insights.V20200202.Component(appInsightsName, new Pulumi.AzureNative.Insights.V20200202.ComponentArgs {",
+			"  ResourceGroupName = rg.Name,",
+			"  Kind = \"web\",",
+			"  ApplicationType = \"web\",",
+			"  WorkspaceResourceId = laws.Id",
+			"}, new CustomResourceOptions { Parent = laws });",
+			"",
+			"$0"
+		],
+		"description": "Add Application Insights"
+	},
+	"Pulumi Add Storage": {
+		"scope": "csharp",
+		"prefix": "pulumi-05",
+		"body": [
+			"var storage = new Pulumi.AzureNative.Storage.StorageAccount(storageAccountName, new Pulumi.AzureNative.Storage.StorageAccountArgs {",
+			"  ResourceGroupName = rg.Name,",
+			"  Sku = new Pulumi.AzureNative.Storage.Inputs.SkuArgs {",
+			"    Name = \"Standard_LRS\"",
+			"  },",
+			"  Kind = Pulumi.AzureNative.Storage.Kind.StorageV2",
+			"}, new CustomResourceOptions { Parent = rg });",
+			"",
+			"$0"
+		],
+		"description": "Add Storage"
+	},
+	"Pulumi Add App Service Plan": {
+		"scope": "csharp",
+		"prefix": "pulumi-06",
+		"body": [
+			"var appSvcPlan = new Pulumi.AzureNative.Web.AppServicePlan(appSvcPlanName, new Pulumi.AzureNative.Web.AppServicePlanArgs {",
+			"  ResourceGroupName = rg.Name,",
+			"  Sku = new Pulumi.AzureNative.Web.Inputs.SkuDescriptionArgs {",
+			"    Name = \"B1\",",
+			"    Capacity = 1",
+			"  }",
+			"}, new CustomResourceOptions { Parent = rg });",
+			"",
+			"$0"
+		],
+		"description": "Add App Service Plan"
+	},
+	"Pulumi Add Web App": {
+		"scope": "csharp",
+		"prefix": "pulumi-07",
+		"body": [
+			"var app = new Pulumi.AzureNative.Web.WebApp(webAppName, new Pulumi.AzureNative.Web.WebAppArgs{",
+			"  ResourceGroupName = rg.Name,",
+			"  ServerFarmId = appSvcPlan.Id,",
+			"  HttpsOnly = true,",
+			"  SiteConfig = new Pulumi.AzureNative.Web.Inputs.SiteConfigArgs {",
+			"    MinTlsVersion = \"1.2\",",
+			"    $0",
+			"  }",
+			"}, new CustomResourceOptions { Parent = appSvcPlan });",
+			"",
+			""
+		],
+		"description": "Add App Web App"
+	},
+	"Pulumi Add AppSettings": {
+		"scope": "csharp",
+		"prefix": "pulumi-08",
+		"body": [
+			"AppSettings = new[] {",
+            "  new Pulumi.AzureNative.Web.Inputs.NameValuePairArgs {",
+            "    Name = \"APPINSIGHTS_INSTRUMENTATIONKEY\",",
+            "    Value = ai.InstrumentationKey",
+            "  }",
+            "},",
+			"$0"
+		],
+		"description": "Add App AppSettings"
+	},
+	"Pulumi Add ConnectionStrings": {
+		"scope": "csharp",
+		"prefix": "pulumi-09",
+		"body": [
+			"ConnectionStrings = new[] {",
+            "  new Pulumi.AzureNative.Web.Inputs.ConnStringInfoArgs {",
+            "    Type = Pulumi.AzureNative.Web.ConnectionStringType.Custom,",
+            "    Name = \"Storage\",",
+            "    ConnectionString = GetStorageConnectionString(rg, storage)",
+            "  }",
+            "}"
+		],
+		"description": "Add App ConnectionStrings"
+	},
+	"Pulumi Add GetConnectionString method": {
+		"scope": "csharp",
+		"prefix": "pulumi-10",
+		"body": [
+			"static Output<string> GetStorageConnectionString(ResourceGroup resourceGroup, Pulumi.AzureNative.Storage.StorageAccount account)",
+			"{",
+			"  var primaryStorageKey = Output.Tuple(resourceGroup.Name, account.Name).Apply(",
+			"    x => Output.Create(Pulumi.AzureNative.Storage.ListStorageAccountKeys.InvokeAsync(",
+			"                       new Pulumi.AzureNative.Storage.ListStorageAccountKeysArgs {",
+			"                         ResourceGroupName = x.Item1,",
+			"                         AccountName = x.Item2",
+			"                       }).ContinueWith(x => x.Result.Keys[0].Value)",
+			"    )",
+			"  );",
+			"",
+			"  return Output.Tuple(account.Name, primaryStorageKey).Apply(x => $\"DefaultEndpointsProtocol=https;AccountName={x.Item1};AccountKey={x.Item2}\");",
+			"}",
+		],
+		"description": "Add App GetConnectionString method"
+	},
+	"Pulumi Add Outputs": {
+		"scope": "csharp",
+		"prefix": "pulumi-11",
+		"body": [
+			"return new Dictionary<string, object?> {",
+			"  { \"websiteUrl\", app.DefaultHostName.Apply(x => $\"https://{x}/\") }",
+			"};"
+		],
+		"description": "Add App Outputs"
+	},
+}
